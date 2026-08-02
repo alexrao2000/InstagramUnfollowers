@@ -50,6 +50,11 @@ This version utilizes the Instagram API for better performance.
 
     <img src="./assets/settings.png" alt="Settings screen" />
 
+12. 🔔 Optional unfollow notifications:
+    - Add an automation webhook URL in Settings to receive one POST per unfollow result
+    - Use services such as IFTTT, Zapier, Make, Twilio, or your own serverless endpoint to forward those webhook events to email or SMS
+    - Notification requests are sent after each unfollow attempt and do not replace the built-in wait times that help reduce rate-limit risk
+
 ## 📱 Mobile Usage
 
 For Android users who want to use it on mobile:
@@ -71,6 +76,7 @@ For Android users who want to use it on mobile:
 - 🤍 Whitelist system to protect specific accounts from unfollowing
 - 💾 Export/Import whitelist functionality for backup and transfer
 - ⚙️ Customizable timing settings to avoid rate limits
+- 🔔 Optional webhook notifications for successful or failed unfollow attempts
 - 🎨 Clean, minimalist interface inspired by Apple design
 - 📱 Fully responsive - works on desktop and mobile
 - 🔒 All data stored locally - no external servers

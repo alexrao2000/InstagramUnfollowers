@@ -1,6 +1,7 @@
 import { UserNode } from "../model/user";
 import { Timings } from "../model/timings";
-import { WHITELISTED_RESULTS_STORAGE_KEY, TIMINGS_STORAGE_KEY } from "../constants/constants";
+import { NotificationSettings } from "../model/notification-settings";
+import { WHITELISTED_RESULTS_STORAGE_KEY, TIMINGS_STORAGE_KEY, NOTIFICATION_SETTINGS_STORAGE_KEY } from "../constants/constants";
 
 /**
  * Export whitelist to a JSON file
@@ -141,4 +142,44 @@ export const loadTimings = (): Timings | null => {
  */
 export const saveTimings = (timings: Timings): void => {
   localStorage.setItem(TIMINGS_STORAGE_KEY, JSON.stringify(timings));
+};
+
+
+const isNotificationSettings = (value: unknown): value is NotificationSettings => {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    return false;
+  }
+
+  const settings = value as Partial<NotificationSettings>;
+  return (
+    typeof settings.enabled === "boolean" &&
+    typeof settings.webhookUrl === "string" &&
+    typeof settings.notifyOnSuccess === "boolean" &&
+    typeof settings.notifyOnFailure === "boolean"
+  );
+};
+
+/**
+ * Load notification settings from localStorage
+ */
+export const loadNotificationSettings = (): NotificationSettings | null => {
+  const settingsFromStorage = localStorage.getItem(NOTIFICATION_SETTINGS_STORAGE_KEY);
+
+  if (settingsFromStorage === null) {
+    return null;
+  }
+
+  try {
+    const parsedSettings: unknown = JSON.parse(settingsFromStorage);
+    return isNotificationSettings(parsedSettings) ? parsedSettings : null;
+  } catch {
+    return null;
+  }
+};
+
+/**
+ * Save notification settings to localStorage
+ */
+export const saveNotificationSettings = (settings: NotificationSettings): void => {
+  localStorage.setItem(NOTIFICATION_SETTINGS_STORAGE_KEY, JSON.stringify(settings));
 };

@@ -4,6 +4,7 @@ import { ScanningTab } from "../model/scanning-tab";
 import { ScanningFilter } from "../model/scanning-filter";
 import { UnfollowLogEntry } from "../model/unfollow-log-entry";
 import { UnfollowFilter } from "../model/unfollow-filter";
+import { NotificationSettings } from "../model/notification-settings";
 
 export async function copyListToClipboard(nonFollowersList: readonly UserNode[]): Promise<void> {
   const sortedList = [...nonFollowersList].sort((a, b) => (a.username > b.username ? 1 : -1));
@@ -171,4 +172,62 @@ export function urlGenerator(nextCode?: string): string {
 
 export function unfollowUserUrlGenerator(idToUnfollow: string): string {
   return `https://www.instagram.com/web/friendships/${idToUnfollow}/unfollow/`;
+}
+
+
+interface UnfollowNotificationPayload {
+  readonly event: "instagram_unfollow_result";
+  readonly username: string;
+  readonly userId: string;
+  readonly profileUrl: string;
+  readonly status: "success" | "failure";
+  readonly occurredAt: string;
+}
+
+export function sendUnfollowNotification(
+  user: UserNode,
+  status: "success" | "failure",
+  settings: NotificationSettings,
+): void {
+  if (!settings.enabled || settings.webhookUrl.trim() === "") {
+    return;
+  }
+
+  if ((status === "success" && !settings.notifyOnSuccess) || (status === "failure" && !settings.notifyOnFailure)) {
+    return;
+  }
+
+  const payload: UnfollowNotificationPayload = {
+    event: "instagram_unfollow_result",
+    username: user.username,
+    userId: user.id,
+    profileUrl: `https://www.instagram.com/${user.username}/`,
+    status,
+    occurredAt: new Date().toISOString(),
+  };
+
+  const body = JSON.stringify(payload);
+
+  try {
+    if (navigator.sendBeacon !== undefined) {
+      const sent = navigator.sendBeacon(
+        settings.webhookUrl,
+        new Blob([body], { type: "application/json" }),
+      );
+      if (sent) {
+        return;
+      }
+    }
+
+    void fetch(settings.webhookUrl, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+      },
+      body,
+      keepalive: true,
+    }).catch(error => console.error("Failed to send unfollow notification", error));
+  } catch (error) {
+    console.error("Failed to send unfollow notification", error);
+  }
 }

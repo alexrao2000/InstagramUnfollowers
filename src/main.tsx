@@ -14,7 +14,7 @@ import {
   assertUnreachable,
   getCookie,
   getCurrentPageUnfollowers,
-  getUsersForDisplay, sleep, unfollowUserUrlGenerator, urlGenerator,
+  getUsersForDisplay, sendUnfollowNotification, sleep, unfollowUserUrlGenerator, urlGenerator,
 } from "./utils/utils";
 import { NotSearching } from "./components/NotSearching";
 import { State } from "./model/state";
@@ -22,10 +22,17 @@ import { Searching } from "./components/Searching";
 import { Toolbar } from "./components/Toolbar";
 import { Unfollowing } from "./components/Unfollowing";
 import { Timings } from "./model/timings";
-import { loadWhitelist, saveWhitelist, loadTimings, saveTimings } from "./utils/whitelist-manager";
+import { NotificationSettings } from "./model/notification-settings";
+import { loadWhitelist, saveWhitelist, loadTimings, saveTimings, loadNotificationSettings, saveNotificationSettings } from "./utils/whitelist-manager";
 
 const LOCAL_PREVIEW_HOSTS = new Set(["localhost", "127.0.0.1", "::1"]);
 const isLocalPreview = LOCAL_PREVIEW_HOSTS.has(location.hostname);
+const DEFAULT_NOTIFICATION_SETTINGS: NotificationSettings = {
+  enabled: false,
+  webhookUrl: "",
+  notifyOnSuccess: true,
+  notifyOnFailure: true,
+};
 
 const _avatarUrl = (seed: string): string =>
   `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(seed)}&backgroundColor=0f172a,1f2937,312e81&fontFamily=Verdana`;
@@ -122,10 +129,18 @@ function App() {
     };
   });
 
+  const [notificationSettings, setNotificationSettings] = useState<NotificationSettings>(() => {
+    return loadNotificationSettings() ?? DEFAULT_NOTIFICATION_SETTINGS;
+  });
+
   // Save timings whenever they change
   useEffect(() => {
     saveTimings(timings);
   }, [timings]);
+
+  useEffect(() => {
+    saveNotificationSettings(notificationSettings);
+  }, [notificationSettings]);
 
 
   let isActiveProcess: boolean;
@@ -455,6 +470,7 @@ function App() {
               ],
             };
           });
+          sendUnfollowNotification(user, "success", notificationSettings);
         } catch (e) {
           console.error(e);
           setState(prevState => {
@@ -473,6 +489,7 @@ function App() {
               ],
             };
           });
+          sendUnfollowNotification(user, "failure", notificationSettings);
         }
         // If unfollowing the last user in the list, no reason to wait.
         if (user === state.selectedResults[state.selectedResults.length - 1]) {
@@ -536,6 +553,8 @@ function App() {
           currentTimings={timings}
           whitelistedUsers={state.status === "scanning" ? state.whitelistedResults : loadWhitelist()}
           onWhitelistUpdate={onWhitelistUpdate}
+          notificationSettings={notificationSettings}
+          setNotificationSettings={setNotificationSettings}
         ></Toolbar>
 
         {markup}

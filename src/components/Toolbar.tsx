@@ -4,6 +4,7 @@ import { assertUnreachable, copyListToClipboard, exportToCSV, exportToJSON, getC
 import { SettingMenu } from "./SettingMenu";
 import { SettingIcon } from "./icons/SettingIcon";
 import { Timings } from "../model/timings";
+import { NotificationSettings } from "../model/notification-settings";
 import { Logo } from "./icons/Logo";
 import { UserNode } from "../model/user";
 
@@ -17,6 +18,8 @@ interface ToolBarProps {
   setTimings: (timings: Timings) => void;
   whitelistedUsers: readonly UserNode[];
   onWhitelistUpdate: (users: readonly UserNode[]) => void;
+  notificationSettings: NotificationSettings;
+  setNotificationSettings: (settings: NotificationSettings) => void;
 }
 
 export const Toolbar = ({
@@ -29,6 +32,8 @@ export const Toolbar = ({
   setTimings,
   whitelistedUsers,
   onWhitelistUpdate,
+  notificationSettings,
+  setNotificationSettings,
 }: ToolBarProps) => {
 
   const [setingMenu, setSettingMenu] = useState(false);
@@ -209,6 +214,8 @@ export const Toolbar = ({
           setTimings={setTimings}
           whitelistedUsers={whitelistedUsers}
           onWhitelistUpdate={onWhitelistUpdate}
+          currentNotificationSettings={notificationSettings}
+          setNotificationSettings={setNotificationSettings}
         ></SettingMenu>
       }
 

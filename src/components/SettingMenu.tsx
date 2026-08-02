@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Timings } from "../model/timings";
+import { NotificationSettings } from "../model/notification-settings";
 import { UserNode } from "../model/user";
 import { WhitelistManager } from "./WhitelistManager";
 
@@ -9,6 +10,8 @@ interface SettingMenuProps {
   setTimings: (timings: Timings) => void;
   whitelistedUsers: readonly UserNode[];
   onWhitelistUpdate: (users: readonly UserNode[]) => void;
+  currentNotificationSettings: NotificationSettings;
+  setNotificationSettings: (settings: NotificationSettings) => void;
 }
 
 export const SettingMenu = ({
@@ -17,11 +20,17 @@ export const SettingMenu = ({
   setTimings,
   whitelistedUsers,
   onWhitelistUpdate,
+  currentNotificationSettings,
+  setNotificationSettings,
 }: SettingMenuProps) => {
   const [timeBetweenSearchCycles, setTimeBetweenSearchCycles] = useState(currentTimings.timeBetweenSearchCycles);
   const [timeToWaitAfterFiveSearchCycles, setTimeToWaitAfterFiveSearchCycles] = useState(currentTimings.timeToWaitAfterFiveSearchCycles);
   const [timeBetweenUnfollows, setTimeBetweenUnfollows] = useState(currentTimings.timeBetweenUnfollows);
   const [timeToWaitAfterFiveUnfollows, setTimeToWaitAfterFiveUnfollows] = useState(currentTimings.timeToWaitAfterFiveUnfollows);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(currentNotificationSettings.enabled);
+  const [webhookUrl, setWebhookUrl] = useState(currentNotificationSettings.webhookUrl);
+  const [notifyOnSuccess, setNotifyOnSuccess] = useState(currentNotificationSettings.notifyOnSuccess);
+  const [notifyOnFailure, setNotifyOnFailure] = useState(currentNotificationSettings.notifyOnFailure);
 
   const handleSave = (event: any) => {
     event.preventDefault();
@@ -30,6 +39,12 @@ export const SettingMenu = ({
       timeToWaitAfterFiveSearchCycles,
       timeBetweenUnfollows,
       timeToWaitAfterFiveUnfollows,
+    });
+    setNotificationSettings({
+      enabled: notificationsEnabled,
+      webhookUrl: webhookUrl.trim(),
+      notifyOnSuccess,
+      notifyOnFailure,
     });
     setSettingState(false);
   };
@@ -106,6 +121,50 @@ export const SettingMenu = ({
                   onChange={(e) => handleInputChange(e, setTimeToWaitAfterFiveUnfollows)}
                 />
                 <label className="margin-between-input-and-label">(ms)</label>
+              </div>
+
+
+
+              <div className="notification-settings">
+                <h4>Unfollow notifications</h4>
+                <p className="notification-help">
+                  Optional: POST each unfollow result to an automation webhook (for example IFTTT, Zapier, Make, or a serverless function) that can send email or SMS.
+                </p>
+                <label className="badge m-small">
+                  <input
+                    type="checkbox"
+                    checked={notificationsEnabled}
+                    onChange={(e) => setNotificationsEnabled(e.currentTarget.checked)}
+                  />
+                  &nbsp;Enable notifications
+                </label>
+                <div className="row">
+                  <label className="minimun-width">Webhook URL</label>
+                  <input
+                    type="url"
+                    id="notificationWebhookUrl"
+                    name="notificationWebhookUrl"
+                    placeholder="https://hooks.example.com/..."
+                    value={webhookUrl}
+                    onChange={(e) => setWebhookUrl(e.currentTarget.value)}
+                  />
+                </div>
+                <label className="badge m-small">
+                  <input
+                    type="checkbox"
+                    checked={notifyOnSuccess}
+                    onChange={(e) => setNotifyOnSuccess(e.currentTarget.checked)}
+                  />
+                  &nbsp;Notify on successful unfollows
+                </label>
+                <label className="badge m-small">
+                  <input
+                    type="checkbox"
+                    checked={notifyOnFailure}
+                    onChange={(e) => setNotifyOnFailure(e.currentTarget.checked)}
+                  />
+                  &nbsp;Notify on failed unfollows
+                </label>
               </div>
 
               <div className="warning-container">
